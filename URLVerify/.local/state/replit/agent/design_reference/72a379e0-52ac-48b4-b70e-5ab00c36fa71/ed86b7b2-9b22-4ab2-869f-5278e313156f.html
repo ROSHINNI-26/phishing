@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard - URL Security Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    'security-blue': '#1e40af',
+                    'safe-green': '#10b981',
+                    'danger-red': '#dc2626',
+                }
+            }
+        }
+    };
+    </script>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-security-blue rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">PhishGuard</h1>
+                        <p class="text-sm text-gray-500">Advanced URL Security Detection</p>
+                    </div>
+                </div>
+                <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+                    <i class="fas fa-check-circle text-safe-green"></i>
+                    <span>Real-time Protection</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Protect Yourself from Phishing</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Enter any URL below to instantly check if it's safe or potentially dangerous. Our advanced detection system analyzes thousands of security indicators.
+            </p>
+        </div>
+
+        <!-- URL Checker Form -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+            <!-- @COMPONENT: URLCheckerForm -->
+            <form id="urlForm" class="space-y-6">
+                <div>
+                    <label for="urlInput" class="block text-sm font-semibold text-gray-700 mb-3">
+                        <i class="fas fa-link text-security-blue mr-2"></i>
+                        Enter URL to Check
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="urlInput" 
+                            name="url"
+                            placeholder="https://example.com"
+                            data-bind="urlValue"
+                            class="w-full px-4 py-4 pr-12 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-security-blue focus:border-security-blue transition-all duration-200 bg-gray-50 focus:bg-white"
+                            required
+                        />
+                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-globe text-gray-400"></i>
+                        </div>
+                        <!-- Error message placeholder -->
+                        <div id="urlError" class="hidden mt-2 text-sm text-danger-red">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span data-bind="errorMessage">Please enter a valid URL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button 
+                        type="submit" 
+                        id="checkButton"
+                        data-event="click:handleSubmit"
+                        class="flex-1 bg-security-blue hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                        <i class="fas fa-search"></i>
+                        <span>Check URL Security</span>
+                    </button>
+                    <button 
+                        type="button" 
+                        id="resetButton"
+                        data-event="click:handleReset"
+                        class="sm:w-auto w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                        style="display: none;"
+                    >
+                        <i class="fas fa-redo"></i>
+                        <span>Check Another URL</span>
+                    </button>
+                </div>
+            </form>
+            <!-- @END_COMPONENT: URLCheckerForm -->
+        </div>
+
+        <!-- Loading State -->
+        <!-- @COMPONENT: LoadingState -->
+        <div id="loadingState" class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center" style="display: none;">
+            <div class="flex flex-col items-center space-y-6">
+                <div class="relative">
+                    <div class="w-16 h-16 border-4 border-gray-200 border-t-security-blue rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-security-blue text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Analyzing URL Security</h3>
+                    <p class="text-gray-600 mb-4">Please wait while we check this URL against our security database...</p>
+                    <div class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-security-blue rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                            <div class="w-2 h-2 bg-security-blue rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                            <div class="w-2 h-2 bg-security-blue rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @STATE: isLoading:boolean = false -->
+        </div>
+        <!-- @END_COMPONENT: LoadingState -->
+
+        <!-- Results Section -->
+        <!-- @COMPONENT: ResultsDisplay -->
+        <div id="resultsSection" class="space-y-6" style="display: none;">
+            <!-- Safe Result -->
+            <div id="safeResult" class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-safe-green rounded-2xl p-8" style="display: none;">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-16 h-16 bg-safe-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-2xl font-bold text-green-800 mb-2">
+                            <i class="fas fa-shield-check mr-2"></i>
+                            Safe & Legitimate
+                        </h3>
+                        <p class="text-green-700 text-lg mb-4">
+                            This URL appears to be safe and legitimate. No phishing indicators were detected.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-certificate text-safe-green"></i>
+                                    <span class="font-semibold text-green-800">SSL Certificate</span>
+                                </div>
+                                <p class="text-sm text-green-700">Valid & Secure</p>
+                            </div>
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-database text-safe-green"></i>
+                                    <span class="font-semibold text-green-800">Reputation</span>
+                                </div>
+                                <p class="text-sm text-green-700">Clean Record</p>
+                            </div>
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-clock text-safe-green"></i>
+                                    <span class="font-semibold text-green-800">Last Checked</span>
+                                </div>
+                                <p class="text-sm text-green-700" data-bind="lastChecked">Just now</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phishing Result -->
+            <div id="phishingResult" class="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-danger-red rounded-2xl p-8" style="display: none;">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-16 h-16 bg-danger-red rounded-full flex items-center justify-center animate-pulse">
+                            <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-2xl font-bold text-red-800 mb-2">
+                            <i class="fas fa-shield-virus mr-2"></i>
+                            Phishing Detected - Dangerous!
+                        </h3>
+                        <p class="text-red-700 text-lg mb-4">
+                            <strong>Warning:</strong> This URL has been identified as a phishing site. Do not enter personal information or credentials.
+                        </p>
+                        <div class="bg-red-100 border border-red-200 rounded-lg p-4 mb-6">
+                            <h4 class="font-semibold text-red-800 mb-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Detected Threats:
+                            </h4>
+                            <ul class="text-sm text-red-700 space-y-1">
+                                <li>• Suspicious domain registration patterns</li>
+                                <li>• Mimics legitimate website appearance</li>
+                                <li>• Contains credential harvesting forms</li>
+                                <li>• Listed in phishing databases</li>
+                            </ul>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-ban text-danger-red"></i>
+                                    <span class="font-semibold text-red-800">Security Status</span>
+                                </div>
+                                <p class="text-sm text-red-700">High Risk</p>
+                            </div>
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-exclamation-circle text-danger-red"></i>
+                                    <span class="font-semibold text-red-800">Threat Level</span>
+                                </div>
+                                <p class="text-sm text-red-700">Critical</p>
+                            </div>
+                            <div class="bg-white/50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-clock text-danger-red"></i>
+                                    <span class="font-semibold text-red-800">Last Updated</span>
+                                </div>
+                                <p class="text-sm text-red-700" data-bind="lastChecked">Just now</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ResultsDisplay -->
+
+        <!-- Security Tips Section -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mt-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <i class="fas fa-lightbulb text-yellow-500 mr-3"></i>
+                Security Tips
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-eye text-security-blue text-lg mt-1"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Check the URL carefully</h4>
+                        <p class="text-gray-600 text-sm">Look for spelling errors, unusual domains, or suspicious characters in URLs.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-lock text-security-blue text-lg mt-1"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Verify HTTPS</h4>
+                        <p class="text-gray-600 text-sm">Legitimate sites use HTTPS encryption. Look for the padlock icon.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-user-shield text-security-blue text-lg mt-1"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Never share credentials</h4>
+                        <p class="text-gray-600 text-sm">Don't enter passwords or personal information on suspicious sites.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-bookmark text-security-blue text-lg mt-1"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Use bookmarks</h4>
+                        <p class="text-gray-600 text-sm">Access important sites through bookmarks rather than clicking links.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-16">
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <div class="w-8 h-8 bg-security-blue rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-semibold">PhishGuard</span>
+                </div>
+                <p class="text-gray-400 text-sm">Protecting users from phishing attacks with advanced URL detection technology.</p>
+                <div class="mt-4 text-xs text-gray-500">
+                    © 2024 PhishGuard. Built for security and peace of mind.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            // Form elements
+            const form = document.getElementById('urlForm');
+            const urlInput = document.getElementById('urlInput');
+            const urlError = document.getElementById('urlError');
+            const checkButton = document.getElementById('checkButton');
+            const resetButton = document.getElementById('resetButton');
+            
+            // State elements
+            const loadingState = document.getElementById('loadingState');
+            const resultsSection = document.getElementById('resultsSection');
+            const safeResult = document.getElementById('safeResult');
+            const phishingResult = document.getElementById('phishingResult');
+
+            // URL validation regex
+            const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+
+            // Mock phishing URLs for demonstration
+            const knownPhishingPatterns = [
+                'paypal-secure',
+                'amazon-verify',
+                'microsoft-login',
+                'google-security',
+                'bank-update',
+                'secure-login',
+                'verify-account',
+                'suspicious'
+            ];
+
+            function validateUrl(url) {
+                if (!url.trim()) {
+                    return { valid: false, error: 'Please enter a URL' };
+                }
+                
+                if (!urlRegex.test(url)) {
+                    return { valid: false, error: 'Please enter a valid URL (including http:// or https://)' };
+                }
+                
+                return { valid: true };
+            }
+
+            function showError(message) {
+                urlError.querySelector('[data-bind="errorMessage"]').textContent = message;
+                urlError.classList.remove('hidden');
+                urlInput.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                urlInput.classList.remove('border-gray-300', 'focus:ring-security-blue', 'focus:border-security-blue');
+            }
+
+            function hideError() {
+                urlError.classList.add('hidden');
+                urlInput.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                urlInput.classList.add('border-gray-300', 'focus:ring-security-blue', 'focus:border-security-blue');
+            }
+
+            function showLoading() {
+                form.style.display = 'none';
+                loadingState.style.display = 'block';
+                resultsSection.style.display = 'none';
+            }
+
+            function hideLoading() {
+                loadingState.style.display = 'none';
+            }
+
+            function showResults(isPhishing) {
+                hideLoading();
+                resultsSection.style.display = 'block';
+                
+                if (isPhishing) {
+                    safeResult.style.display = 'none';
+                    phishingResult.style.display = 'block';
+                } else {
+                    phishingResult.style.display = 'none';
+                    safeResult.style.display = 'block';
+                }
+                
+                resetButton.style.display = 'block';
+                
+                // Update timestamp
+                const now = new Date().toLocaleString();
+                document.querySelectorAll('[data-bind="lastChecked"]').forEach(el => {
+                    el.textContent = now;
+                });
+            }
+
+            function resetForm() {
+                form.style.display = 'block';
+                resultsSection.style.display = 'none';
+                resetButton.style.display = 'none';
+                urlInput.value = '';
+                hideError();
+                urlInput.focus();
+            }
+
+            function analyzeUrl(url) {
+                // Mock analysis - in real implementation, this would be an API call
+                // TODO: Replace with actual API call to phishing detection service
+                
+                const lowerUrl = url.toLowerCase();
+                const isPhishing = knownPhishingPatterns.some(pattern => 
+                    lowerUrl.includes(pattern)
+                ) || Math.random() < 0.3; // 30% chance for demo purposes
+
+                return isPhishing;
+            }
+
+            // Form submission handler
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const url = urlInput.value.trim();
+                const validation = validateUrl(url);
+                
+                if (!validation.valid) {
+                    showError(validation.error);
+                    return;
+                }
+                
+                hideError();
+                showLoading();
+                
+                // Simulate API delay (2-3 seconds)
+                setTimeout(() => {
+                    const isPhishing = analyzeUrl(url);
+                    showResults(isPhishing);
+                }, 2000 + Math.random() * 1000);
+            });
+
+            // Reset button handler
+            resetButton.addEventListener('click', resetForm);
+
+            // Real-time input validation
+            urlInput.addEventListener('input', function() {
+                if (urlInput.value.trim()) {
+                    hideError();
+                }
+            });
+
+            // Focus on input when page loads
+            urlInput.focus();
+        })();
+    </script>
+</body>
+</html>
